@@ -1,4 +1,4 @@
-"""Polls the Stash out-sensor webhook."""
+"""Polls the Stache out-sensor webhook."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -21,8 +21,8 @@ def sensor_url(base: str, token: str) -> str:
     return f"{base.rstrip('/')}{SENSOR_PATH}?token={token}"
 
 
-class StashCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """Fetches out/low-stock/warranty data from Stash."""
+class StacheCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+    """Fetches out/low-stock/warranty data from Stache."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         super().__init__(
@@ -46,4 +46,4 @@ class StashCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except UpdateFailed:
             raise
         except Exception as err:
-            raise UpdateFailed(f"Cannot reach Stash: {err}") from err
+            raise UpdateFailed(f"Cannot reach Stache: {err}") from err

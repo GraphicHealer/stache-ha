@@ -2,21 +2,21 @@
   "config": {
     "step": {
       "user": {
-        "title": "Connect to Stash",
-        "description": "Paste the sensor URL from Stash (Settings -> Out reminders -> Copy sensor URL), or enter the Stash URL plus the webhook token separately.",
+        "title": "Connect to Stache",
+        "description": "Paste the sensor URL from Stache (Settings -> Out reminders -> Copy sensor URL), or enter the Stache URL plus the webhook token separately.",
         "data": {
-          "url": "Stash URL or sensor URL",
+          "url": "Stache URL or sensor URL",
           "token": "Webhook token (only needed if not in the URL)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Could not reach Stash at that URL",
+      "cannot_connect": "Could not reach Stache at that URL",
       "invalid_auth": "Invalid webhook token",
       "token_required": "A webhook token is required"
     },
     "abort": {
-      "already_configured": "This Stash instance is already configured"
+      "already_configured": "This Stache instance is already configured"
     }
   },
   "entity": {

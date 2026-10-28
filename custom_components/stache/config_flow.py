@@ -1,4 +1,4 @@
-"""Config flow for Stash - accepts a pasted sensor URL or host + token."""
+"""Config flow for Stache - accepts a pasted sensor URL or host + token."""
 from __future__ import annotations
 
 import logging
@@ -27,7 +27,7 @@ def parse_input(url: str, token: str | None) -> tuple[str, str | None]:
     return url.rstrip("/"), token
 
 
-class StashConfigFlow(ConfigFlow, domain=DOMAIN):
+class StacheConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(
@@ -57,7 +57,7 @@ class StashConfigFlow(ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(url)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=f"Stash ({urlparse(url).netloc})",
+                    title=f"Stache ({urlparse(url).netloc})",
                     data={CONF_URL: url, CONF_TOKEN: token},
                 )
 

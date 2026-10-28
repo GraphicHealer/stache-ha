@@ -1,4 +1,4 @@
-"""Sensors for Stash: items out, unaccounted, low stock, warranty expiring."""
+"""Sensors for Stache: items out, unaccounted, low stock, warranty expiring."""
 from __future__ import annotations
 
 from typing import Any
@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_URL, DOMAIN
-from .coordinator import StashCoordinator
+from .coordinator import StacheCoordinator
 
 DESCRIPTIONS = [
     {
@@ -56,18 +56,18 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: StashCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: StacheCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        StashSensor(coordinator, entry, desc) for desc in DESCRIPTIONS
+        StacheSensor(coordinator, entry, desc) for desc in DESCRIPTIONS
     )
 
 
-class StashSensor(CoordinatorEntity[StashCoordinator], SensorEntity):
+class StacheSensor(CoordinatorEntity[StacheCoordinator], SensorEntity):
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: StashCoordinator,
+        coordinator: StacheCoordinator,
         entry: ConfigEntry,
         desc: dict[str, Any],
     ) -> None:
@@ -78,8 +78,8 @@ class StashSensor(CoordinatorEntity[StashCoordinator], SensorEntity):
         self._attr_icon = desc["icon"]
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
-            name="Stash",
-            manufacturer="Stash",
+            name="Stache",
+            manufacturer="Stache",
             configuration_url=entry.data[CONF_URL],
         )
 
