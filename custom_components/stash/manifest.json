@@ -1,0 +1,12 @@
+{
+  "domain": "stash",
+  "name": "Stash",
+  "codeowners": ["@GraphicHealer"],
+  "config_flow": true,
+  "documentation": "https://github.com/GraphicHealer/stash-ha",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/GraphicHealer/stash-ha/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
