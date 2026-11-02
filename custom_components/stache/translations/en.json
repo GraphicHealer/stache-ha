@@ -20,6 +20,8 @@
     "error": {
       "cannot_connect": "Could not reach Stache at that URL",
       "invalid_auth": "Invalid webhook token",
+      "invalid_url": "Enter a valid http(s) URL for your Stache server",
+      "invalid_response": "That URL answered, but it does not look like a Stache server",
       "token_required": "A webhook token is required"
     },
     "abort": {

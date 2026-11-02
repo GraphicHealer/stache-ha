@@ -27,7 +27,7 @@ from .const import (
     MIN_SCAN_INTERVAL,
     SENSOR_PATH,
 )
-from .coordinator import StacheConfigEntry, sensor_url
+from .coordinator import StacheConfigEntry, sensor_url, valid_payload
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,13 +41,33 @@ REAUTH_SCHEMA = vol.Schema({vol.Required(CONF_TOKEN): str})
 
 
 def parse_input(url: str, token: str | None) -> tuple[str, str | None]:
-    """Split a pasted out-sensor URL into base + token, or keep them as given."""
-    url = url.strip()
-    parsed = urlparse(url)
+    """Split a pasted out-sensor URL into base + token, or keep them as given.
+
+    Raises ValueError("invalid_url") on malformed input - the flow maps it to
+    a field error rather than letting urlparse exceptions escape.
+    """
+    try:
+        parsed = urlparse(url.strip())
+    except ValueError as err:
+        raise ValueError("invalid_url") from err
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise ValueError("invalid_url")
     if parsed.path.rstrip("/").endswith(SENSOR_PATH):
-        token = parse_qs(parsed.query).get("token", [token])[0]
-        url = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
-    return url.rstrip("/"), token
+        params = parse_qs(parsed.query)
+        tokens = params.get("token", [])
+        if len(tokens) > 1:
+            raise ValueError("invalid_url")  # ambiguous - refuse silently picking one
+        token = tokens[0] if tokens else token
+        base = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
+    else:
+        # A base URL may carry a path prefix (reverse proxy) but never a
+        # query string or fragment - they'd corrupt the endpoint we build.
+        if parsed.query or parsed.fragment:
+            raise ValueError("invalid_url")
+        base = urlunparse(
+            (parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), "", "", "")
+        )
+    return base.rstrip("/"), token
 
 
 async def _validate(hass, url: str, token: str) -> str | None:
@@ -61,8 +81,11 @@ async def _validate(hass, url: str, token: str) -> str | None:
                 return "invalid_auth"
             if not resp.ok:
                 return "cannot_connect"
-    except (aiohttp.ClientError, TimeoutError):
+            data = await resp.json(content_type=None)
+    except (aiohttp.ClientError, TimeoutError, ValueError):
         return "cannot_connect"
+    if not valid_payload(data):
+        return "invalid_response"
     return None
 
 
@@ -74,9 +97,15 @@ class StacheConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
-            url, token = parse_input(
-                user_input[CONF_URL], user_input.get(CONF_TOKEN) or None
-            )
+            try:
+                url, token = parse_input(
+                    user_input[CONF_URL], user_input.get(CONF_TOKEN) or None
+                )
+            except ValueError:
+                errors[CONF_URL] = "invalid_url"
+                return self.async_show_form(
+                    step_id="user", data_schema=USER_SCHEMA, errors=errors
+                )
             if not token:
                 errors["base"] = "token_required"
             elif (error := await _validate(self.hass, url, token)) is not None:
