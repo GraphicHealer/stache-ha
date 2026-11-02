@@ -70,3 +70,7 @@ actions:
 Stache also exposes a POST webhook (`.../api/webhooks/digest?token=...`) that
 sends the bundled digest on demand - call it from an HA `rest_command` if you
 want the digest pushed at a specific time.
+
+## License
+
+[AGPL-3.0](LICENSE) - forks must stay open source, with attribution.
