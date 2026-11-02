@@ -12,8 +12,10 @@ source of the API contract) and `../stache-site` (marketing/docs).
 - Distributed via HACS (`hacs.json`, min HA `2025.1.0` - relies on
   `runtime_data`, modern `OptionsFlow`, coordinator `config_entry=`).
   Version lives in `manifest.json` only - bump it per release.
-- `.github/workflows/validate.yml` runs hassfest + the HACS action on
-  push/PR. Local check: `python -m compileall custom_components/`.
+- `.github/workflows/validate.yml` runs hassfest + the HACS action + the
+  pytest suite on push/PR. Local check: `python -m compileall custom_components/`;
+  tests: `pip install -r requirements_test.txt && pytest` (Python 3.13,
+  pytest-homeassistant-custom-component, mocked HTTP via `aioclient_mock`).
 
 ## Shape
 

@@ -15,7 +15,7 @@ from custom_components.stache.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 
-from .conftest import BASE_URL, PAYLOAD, SENSOR_URL, TOKEN, entry, setup  # noqa: F401
+from conftest import BASE_URL, PAYLOAD, SENSOR_URL, TOKEN, setup
 
 
 async def test_sensors_populate(hass: HomeAssistant, aioclient_mock, entry):

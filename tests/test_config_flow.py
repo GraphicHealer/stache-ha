@@ -12,7 +12,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from custom_components.stache.config_flow import parse_input
 from custom_components.stache.const import DOMAIN
 
-from .conftest import BASE_URL, PAYLOAD, SENSOR_URL, TOKEN, entry, setup  # noqa: F401
+from conftest import BASE_URL, PAYLOAD, SENSOR_URL, TOKEN, setup
 
 
 async def start_user_flow(hass: HomeAssistant):

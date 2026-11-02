@@ -79,7 +79,7 @@ async def _validate(hass, url: str, token: str) -> str | None:
         ) as resp:
             if resp.status == 401:
                 return "invalid_auth"
-            if not resp.ok:
+            if resp.status != 200:
                 return "cannot_connect"
             data = await resp.json(content_type=None)
     except (aiohttp.ClientError, TimeoutError, ValueError):
