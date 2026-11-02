@@ -54,11 +54,17 @@ def parse_input(url: str, token: str | None) -> tuple[str, str | None]:
         raise ValueError("invalid_url")
     if parsed.path.rstrip("/").endswith(SENSOR_PATH):
         params = parse_qs(parsed.query)
+        # Only the token param is expected; fragments or other params would
+        # corrupt the endpoint we rebuild - reject rather than silently drop.
+        if parsed.fragment or set(params) - {"token"}:
+            raise ValueError("invalid_url")
         tokens = params.get("token", [])
         if len(tokens) > 1:
             raise ValueError("invalid_url")  # ambiguous - refuse silently picking one
         token = tokens[0] if tokens else token
-        base = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
+        # Strip only the sensor endpoint - keep any reverse-proxy path prefix.
+        prefix = parsed.path.rstrip("/")[: -len(SENSOR_PATH)]
+        base = urlunparse((parsed.scheme, parsed.netloc, prefix, "", "", ""))
     else:
         # A base URL may carry a path prefix (reverse proxy) but never a
         # query string or fragment - they'd corrupt the endpoint we build.
@@ -81,8 +87,13 @@ async def _validate(hass, url: str, token: str) -> str | None:
                 return "invalid_auth"
             if resp.status != 200:
                 return "cannot_connect"
-            data = await resp.json(content_type=None)
-    except (aiohttp.ClientError, TimeoutError, ValueError):
+            try:
+                data = await resp.json(content_type=None)
+            except (aiohttp.ContentTypeError, ValueError):
+                # Server answered but the body isn't JSON we can use - that
+                # is a wrong-service problem, not a connectivity one.
+                return "invalid_response"
+    except (aiohttp.ClientError, TimeoutError):
         return "cannot_connect"
     if not valid_payload(data):
         return "invalid_response"

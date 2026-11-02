@@ -77,9 +77,15 @@ async def test_connection_error_marks_update_failed(
     [
         {},
         {"out_count": 1},  # missing fields
-        {"out_count": "1", "unaccounted_count": 0, "total": 1, "items": [],
-         "low_stock_count": 0, "low_stock": [], "warranty_expiring": []},
         [],  # not an object at all
+        dict(PAYLOAD, out_count="1"),  # wrong type
+        dict(PAYLOAD, out_count=True),  # bool is an int subclass - not a count
+        dict(PAYLOAD, out_count=-1),  # negative count
+        dict(PAYLOAD, low_stock_count=False),
+        dict(PAYLOAD, items="not-a-list"),
+        dict(PAYLOAD, items=[42]),  # non-dict entry breaks attributes
+        dict(PAYLOAD, low_stock=[{"name": "x"}, "junk"]),
+        dict(PAYLOAD, warranty_expiring=None),
     ],
 )
 def test_valid_payload_rejects_wrong_shapes(bad):
@@ -89,6 +95,7 @@ def test_valid_payload_rejects_wrong_shapes(bad):
 def test_valid_payload_accepts_contract():
     assert valid_payload(PAYLOAD) is True
     assert valid_payload(dict(PAYLOAD, extra="ok")) is True
+    assert valid_payload(dict(PAYLOAD, out_count=0)) is True
 
 
 async def test_malformed_json_marks_update_failed(

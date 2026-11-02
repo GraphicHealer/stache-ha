@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.stache.config_flow import parse_input
-from custom_components.stache.const import DOMAIN
+from custom_components.stache.const import DOMAIN, SENSOR_PATH
 
 from conftest import BASE_URL, PAYLOAD, SENSOR_URL, TOKEN, setup
 
@@ -27,6 +27,20 @@ async def test_parse_input_accepts_sensor_url_and_base():
     assert parse_input("https://x.io/stache", "t") == ("https://x.io/stache", "t")
 
 
+async def test_parse_input_preserves_proxy_prefix():
+    # Pasted sensor URL behind a reverse proxy keeps the path prefix.
+    prefixed = f"https://proxy.example:8443/stache{SENSOR_PATH}?token={TOKEN}"
+    assert parse_input(prefixed, None) == ("https://proxy.example:8443/stache", TOKEN)
+    # A separate token still fills in when the sensor URL lacks one.
+    assert parse_input(f"https://p/stache{SENSOR_PATH}", "t2") == (
+        "https://p/stache",
+        "t2",
+    )
+    # URL-encoded token arrives decoded.
+    enc = parse_input(f"{SENSOR_URL}?token=a%20b%2Bc", None)
+    assert enc == (BASE_URL, "a b+c")
+
+
 @pytest.mark.parametrize(
     "bad",
     [
@@ -37,6 +51,8 @@ async def test_parse_input_accepts_sensor_url_and_base():
         "http://h:8080#f",
         "http://[unclosed",
         f"{SENSOR_URL}?token=a&token=b",
+        f"{SENSOR_URL}?token=a&extra=1",  # unexpected param - ambiguous intent
+        f"{SENSOR_URL}?token=a#frag",  # fragment has no business in a URL here
     ],
 )
 def test_parse_input_rejects_malformed(bad):
@@ -107,6 +123,34 @@ async def test_setup_wrong_payload(hass: HomeAssistant, aioclient_mock):
         flow["flow_id"], {"url": BASE_URL, "token": TOKEN}
     )
     assert result["errors"] == {"base": "invalid_response"}
+
+
+async def test_setup_non_json_body_is_invalid_response(hass: HomeAssistant, aioclient_mock):
+    """A reachable server answering non-JSON is a wrong-service problem."""
+    aioclient_mock.get(f"{SENSOR_URL}?token={TOKEN}", text="<html>oops</html>")
+    flow = await start_user_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        flow["flow_id"], {"url": BASE_URL, "token": TOKEN}
+    )
+    assert result["errors"] == {"base": "invalid_response"}
+
+
+async def test_setup_timeout_is_cannot_connect(hass: HomeAssistant, aioclient_mock):
+    aioclient_mock.get(f"{SENSOR_URL}?token={TOKEN}", exc=TimeoutError())
+    flow = await start_user_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        flow["flow_id"], {"url": BASE_URL, "token": TOKEN}
+    )
+    assert result["errors"] == {"base": "cannot_connect"}
+
+
+async def test_setup_500_is_cannot_connect(hass: HomeAssistant, aioclient_mock):
+    aioclient_mock.get(f"{SENSOR_URL}?token={TOKEN}", status=500)
+    flow = await start_user_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        flow["flow_id"], {"url": BASE_URL, "token": TOKEN}
+    )
+    assert result["errors"] == {"base": "cannot_connect"}
 
 
 async def test_reauth_updates_token(hass: HomeAssistant, aioclient_mock, entry):

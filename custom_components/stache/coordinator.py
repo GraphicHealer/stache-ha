@@ -34,18 +34,26 @@ def sensor_url(base: str, token: str) -> str:
     return f"{base.rstrip('/')}{SENSOR_PATH}?token={token}"
 
 
+def _count(v: Any) -> bool:
+    # bool is an int subclass - True/False must not pass as counts, and a
+    # negative count is malformed either way.
+    return isinstance(v, int) and not isinstance(v, bool) and v >= 0
+
+
 def valid_payload(data: Any) -> bool:
     """Is this a plausible out-sensor response (not an arbitrary 200 page)?"""
-    return (
-        isinstance(data, dict)
-        and isinstance(data.get("out_count"), int)
-        and isinstance(data.get("unaccounted_count"), int)
-        and isinstance(data.get("total"), int)
-        and isinstance(data.get("items"), list)
-        and isinstance(data.get("low_stock_count"), int)
-        and isinstance(data.get("low_stock"), list)
-        and isinstance(data.get("warranty_expiring"), list)
-    )
+    if not isinstance(data, dict):
+        return False
+    if not all(
+        _count(data.get(k))
+        for k in ("out_count", "unaccounted_count", "total", "low_stock_count")
+    ):
+        return False
+    lists = [data.get(k) for k in ("items", "low_stock", "warranty_expiring")]
+    if not all(isinstance(lst, list) for lst in lists):
+        return False
+    # Entries surface in attributes as dicts; anything else breaks sensors.
+    return all(isinstance(e, dict) for lst in lists for e in lst)
 
 
 class StacheCoordinator(DataUpdateCoordinator[dict[str, Any]]):
