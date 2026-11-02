@@ -1,0 +1,10 @@
+{
+  "entity": {
+    "sensor": {
+      "items_out": { "default": "mdi:package-variant" },
+      "unaccounted": { "default": "mdi:help-rhombus-outline" },
+      "low_stock": { "default": "mdi:package-variant-minus" },
+      "warranty_expiring": { "default": "mdi:shield-clock-outline" }
+    }
+  }
+}

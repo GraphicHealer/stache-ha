@@ -8,6 +8,13 @@
           "url": "Stache URL or sensor URL",
           "token": "Webhook token (only needed if not in the URL)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Update webhook token",
+        "description": "Stache at {url} rejected the stored token. Paste a fresh webhook token from Stache (Settings -> Out reminders).",
+        "data": {
+          "token": "Webhook token"
+        }
       }
     },
     "error": {
@@ -16,7 +23,19 @@
       "token_required": "A webhook token is required"
     },
     "abort": {
-      "already_configured": "This Stache instance is already configured"
+      "already_configured": "This Stache instance is already configured",
+      "reauth_successful": "Token updated"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Stache options",
+        "description": "How often to poll the Stache sensor endpoint.",
+        "data": {
+          "scan_interval": "Polling interval (seconds, 30-3600)"
+        }
+      }
     }
   },
   "entity": {

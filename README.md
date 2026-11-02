@@ -1,15 +1,24 @@
-# Stache for Home Assistant
-
-Home Assistant integration for [Stache](https://github.com/GraphicHealer/Stache) - the
-photo-first home inventory. Exposes what's out of place, running low, or nearing
-the end of warranty as sensors you can automate on.
-
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=GraphicHealer&repository=stache-ha&category=integration)
-[![AI-DECLARATION: pair](https://img.shields.io/badge/AI--DECLARATION-pair-blue)](AI-DECLARATION.md)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/GraphicHealer/Stache/main/client/public/icon.svg" alt="Stache logo" width="128">
+</p>
+<h1 align="center">Stache for Home Assistant</h1>
+<p align="center">
+  Exposes what's out of place, running low, or nearing the end of warranty in
+  <a href="https://github.com/GraphicHealer/Stache">Stache</a> as Home Assistant sensors you can automate on.
+</p>
+<p align="center">
+  <a href="AI-DECLARATION.md"><img src="https://img.shields.io/badge/AI--DECLARATION-pair-blue" alt="AI-DECLARATION: pair"></a>
+</p>
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=GraphicHealer&repository=stache-ha&category=integration"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS"></a>
+  <a href="https://github.com/GraphicHealer/stache-ha/actions/workflows/validate.yml"><img src="https://github.com/GraphicHealer/stache-ha/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
+</p>
 
 ## Install
 
-1. Click the badge above (or add `https://github.com/GraphicHealer/stache-ha` as a
+Requires Home Assistant **2025.1** or newer.
+
+1. Click the HACS badge above (or add `https://github.com/GraphicHealer/stache-ha` as a
    custom repository in HACS, category: Integration).
 2. Install **Stache** from HACS, restart Home Assistant.
 3. Settings -> Devices & Services -> Add Integration -> **Stache**.
@@ -35,8 +44,10 @@ server's address) and the webhook token as two fields.
 | Low stock | Count of items at/below their restock point | Names, quantity, threshold |
 | Warranty expiring | Count of warranties ending within 30 days | Names, end dates |
 
-Polls every 2 minutes. All shared household items are included; private items
-are never exposed.
+Polls every 2 minutes by default (change it under the integration's
+**Configure** options). All shared household items are included; private items
+are never exposed. If the stored token is ever rejected, Home Assistant raises
+a repair asking for a fresh one.
 
 ## Example automation
 
