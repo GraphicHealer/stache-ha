@@ -5,6 +5,7 @@ photo-first home inventory. Exposes what's out of place, running low, or nearing
 the end of warranty as sensors you can automate on.
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=GraphicHealer&repository=stache-ha&category=integration)
+[![AI-DECLARATION: pair](https://img.shields.io/badge/AI--DECLARATION-pair-blue)](AI-DECLARATION.md)
 
 ## Install
 
