@@ -1,6 +1,7 @@
 {
   "domain": "stache",
   "name": "Stache",
+  "categories": ["productivity_information"],
   "codeowners": ["@GraphicHealer"],
   "config_flow": true,
   "documentation": "https://github.com/GraphicHealer/stache-ha",
