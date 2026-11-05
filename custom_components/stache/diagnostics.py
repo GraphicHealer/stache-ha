@@ -34,5 +34,5 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     return {
         "entry": async_redact_data(entry.as_dict(), TO_REDACT),
-        "coordinator_summary": _summarize(entry.runtime_data.data or {}),
+        "coordinator_summary": _summarize(entry.runtime_data.coordinator.data or {}),
     }
