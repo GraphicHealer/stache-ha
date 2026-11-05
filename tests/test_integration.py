@@ -47,7 +47,7 @@ async def test_401_poll_raises_auth_failed(hass: HomeAssistant, aioclient_mock, 
     aioclient_mock.clear_requests()
     aioclient_mock.get(f"{SENSOR_URL}?token={TOKEN}", status=401)
     with pytest.raises(ConfigEntryAuthFailed):
-        await entry.runtime_data._async_update_data()
+        await entry.runtime_data.coordinator._async_update_data()
 
 
 async def test_server_error_marks_update_failed(hass: HomeAssistant, aioclient_mock, entry):
@@ -56,7 +56,7 @@ async def test_server_error_marks_update_failed(hass: HomeAssistant, aioclient_m
     aioclient_mock.clear_requests()
     aioclient_mock.get(f"{SENSOR_URL}?token={TOKEN}", status=500)
     with pytest.raises(UpdateFailed):
-        await entry.runtime_data._async_update_data()
+        await entry.runtime_data.coordinator._async_update_data()
 
 
 async def test_connection_error_marks_update_failed(
@@ -69,7 +69,7 @@ async def test_connection_error_marks_update_failed(
         f"{SENSOR_URL}?token={TOKEN}", exc=aiohttp.ClientConnectionError()
     )
     with pytest.raises(UpdateFailed):
-        await entry.runtime_data._async_update_data()
+        await entry.runtime_data.coordinator._async_update_data()
 
 
 @pytest.mark.parametrize(
@@ -108,7 +108,7 @@ async def test_malformed_json_marks_update_failed(
         f"{SENSOR_URL}?token={TOKEN}", text="<html>not json</html>"
     )
     with pytest.raises(UpdateFailed):
-        await entry.runtime_data._async_update_data()
+        await entry.runtime_data.coordinator._async_update_data()
 
 
 async def test_diagnostics_redacts_token_and_contents(

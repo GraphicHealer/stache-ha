@@ -181,4 +181,4 @@ async def test_options_flow_changes_interval(hass: HomeAssistant, aioclient_mock
     assert result["type"] == FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert entry.options["scan_interval"] == 60
-    assert entry.runtime_data.update_interval == timedelta(seconds=60)
+    assert entry.runtime_data.coordinator.update_interval == timedelta(seconds=60)

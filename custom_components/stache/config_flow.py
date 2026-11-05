@@ -137,23 +137,24 @@ class StacheConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "token_required"
             elif (error := await _validate(self.hass, url, token)) is not None:
                 errors["base"] = error
-            api_token = (user_input.get(CONF_API_TOKEN) or "").strip() or None
-            if api_token and (
-                api_error := await _validate_api(self.hass, url, api_token)
-            ) is not None:
-                errors[CONF_API_TOKEN] = api_error
-                return self.async_show_form(
-                    step_id="user", data_schema=USER_SCHEMA, errors=errors
+            else:
+                api_token = (user_input.get(CONF_API_TOKEN) or "").strip() or None
+                if api_token and (
+                    api_error := await _validate_api(self.hass, url, api_token)
+                ) is not None:
+                    errors[CONF_API_TOKEN] = api_error
+                    return self.async_show_form(
+                        step_id="user", data_schema=USER_SCHEMA, errors=errors
+                    )
+                data = {CONF_URL: url, CONF_TOKEN: token}
+                if api_token:
+                    data[CONF_API_TOKEN] = api_token
+                await self.async_set_unique_id(url)
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(
+                    title=f"Stache ({urlparse(url).netloc})",
+                    data=data,
                 )
-            data = {CONF_URL: url, CONF_TOKEN: token}
-            if api_token:
-                data[CONF_API_TOKEN] = api_token
-            await self.async_set_unique_id(url)
-            self._abort_if_unique_id_configured()
-            return self.async_create_entry(
-                title=f"Stache ({urlparse(url).netloc})",
-                data=data,
-            )
 
         return self.async_show_form(
             step_id="user", data_schema=USER_SCHEMA, errors=errors
