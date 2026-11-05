@@ -122,6 +122,11 @@ class StacheConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        # Single-instance: services resolve "the" Stache client, so a second
+        # entry would silently shadow the first. Reconfigure the existing
+        # entry instead.
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
         errors: dict[str, str] = {}
         if user_input is not None:
             try:

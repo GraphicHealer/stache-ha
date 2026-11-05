@@ -43,7 +43,8 @@
     "abort": {
       "already_configured": "This Stache instance is already configured",
       "reauth_successful": "Token updated",
-      "reconfigure_successful": "API token updated"
+      "reconfigure_successful": "API token updated",
+      "single_instance_allowed": "Only one Stache instance is supported. Reconfigure the existing entry instead."
     }
   },
   "options": {
@@ -72,5 +73,8 @@
         "name": "Warranty expiring"
       }
     }
+  },
+  "abort": {
+    "single_instance_allowed": "Only one Stache instance is supported. Reconfigure the existing entry instead."
   }
 }

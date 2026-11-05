@@ -7,6 +7,8 @@ from typing import Any
 
 import voluptuous as vol
 
+from homeassistant.helpers import config_validation as cv
+
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -37,6 +39,49 @@ AREA_REF_SCHEMA = {
 }
 
 STATUS_CHOICES = ["home", "out", "lent", "unaccounted", "gone"]
+
+# Server upload cap is 25MB - reject oversize photos before reading them.
+MAX_PHOTO_BYTES = 25 * 1024 * 1024
+
+SEARCH_SCHEMA = vol.Schema({vol.Required("query"): cv.string})
+
+ADD_ITEM_SCHEMA = vol.Schema(
+    {
+        vol.Optional("name"): cv.string,
+        vol.Optional("description"): cv.string,
+        vol.Optional("quantity"): vol.All(vol.Coerce(int), vol.Range(min=1, max=1000000)),
+        vol.Optional("barcode"): cv.string,
+        vol.Optional("tags"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Exclusive("photo_path", "photo"): cv.string,
+        vol.Exclusive("photo_url", "photo"): cv.url,
+        **AREA_REF_SCHEMA,
+    }
+)
+
+UPDATE_ITEM_SCHEMA = vol.Schema(
+    {
+        vol.Required("item_id"): cv.string,
+        vol.Optional("name"): vol.Any(None, cv.string),
+        vol.Optional("description"): vol.Any(None, cv.string),
+        vol.Optional("quantity"): vol.All(vol.Coerce(int), vol.Range(min=1, max=1000000)),
+        vol.Optional("barcode"): vol.Any(None, cv.string),
+        vol.Optional("tags"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional("status"): vol.In(STATUS_CHOICES),
+        vol.Optional("lent_to"): vol.Any(None, cv.string),
+    }
+)
+
+SET_STATUS_SCHEMA = vol.Schema(
+    {
+        vol.Required("item_id"): cv.string,
+        vol.Required("status"): vol.In(STATUS_CHOICES),
+        vol.Optional("lent_to"): cv.string,
+    }
+)
+
+MOVE_ITEM_SCHEMA = vol.Schema({vol.Required("item_id"): cv.string, **AREA_REF_SCHEMA})
+
+RESOLVE_LABEL_SCHEMA = vol.Schema({vol.Required("code"): cv.string})
 
 
 def _client(hass: HomeAssistant) -> StacheApiClient:
@@ -71,6 +116,14 @@ async def _photo(call: ServiceCall) -> bytes | None:
         raise ServiceValidationError(
             f"'{path}' is not in an allowlisted external directory - add it to "
             "allowlist_external_dirs in configuration.yaml."
+        )
+    try:
+        size = (await hass.async_add_executor_job(Path(path).stat)).st_size
+    except OSError as err:
+        raise ServiceValidationError(f"could not read photo_path: {err}") from err
+    if size > MAX_PHOTO_BYTES:
+        raise ServiceValidationError(
+            f"photo_path is {size // 1024 // 1024}MB - the limit is 25MB."
         )
     try:
         return await hass.async_add_executor_job(Path(path).read_bytes)
@@ -152,26 +205,26 @@ def async_setup_services(hass: HomeAssistant) -> None:
         return {"label": res.get("label"), "area": res.get("area")}
 
     hass.services.async_register(
-        DOMAIN, SERVICE_SEARCH, search, schema=None,
+        DOMAIN, SERVICE_SEARCH, search, schema=SEARCH_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_ADD_ITEM, add_item, schema=None,
+        DOMAIN, SERVICE_ADD_ITEM, add_item, schema=ADD_ITEM_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_UPDATE_ITEM, update_item, schema=None,
+        DOMAIN, SERVICE_UPDATE_ITEM, update_item, schema=UPDATE_ITEM_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_SET_STATUS, set_status, schema=None,
+        DOMAIN, SERVICE_SET_STATUS, set_status, schema=SET_STATUS_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_MOVE_ITEM, move_item, schema=None,
+        DOMAIN, SERVICE_MOVE_ITEM, move_item, schema=MOVE_ITEM_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_RESOLVE_LABEL, resolve_label, schema=None,
+        DOMAIN, SERVICE_RESOLVE_LABEL, resolve_label, schema=RESOLVE_LABEL_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
