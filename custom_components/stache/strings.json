@@ -73,8 +73,5 @@
         "name": "Warranty expiring"
       }
     }
-  },
-  "abort": {
-    "single_instance_allowed": "Only one Stache instance is supported. Reconfigure the existing entry instead."
   }
 }
