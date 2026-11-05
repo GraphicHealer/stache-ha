@@ -18,6 +18,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    CONF_API_TOKEN,
     CONF_SCAN_INTERVAL,
     CONF_TOKEN,
     CONF_URL,
@@ -27,6 +28,7 @@ from .const import (
     MIN_SCAN_INTERVAL,
     SENSOR_PATH,
 )
+from .api import StacheApiClient, StacheApiError, StacheAuthError
 from .coordinator import StacheConfigEntry, sensor_url, valid_payload
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,9 +37,23 @@ USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_URL): str,
         vol.Optional(CONF_TOKEN): str,
+        # Optional - enables the services. Leave empty for sensors only.
+        vol.Optional(CONF_API_TOKEN): str,
     }
 )
 REAUTH_SCHEMA = vol.Schema({vol.Required(CONF_TOKEN): str})
+RECONFIGURE_SCHEMA = vol.Schema({vol.Required(CONF_API_TOKEN): str})
+
+
+async def _validate_api(hass, url: str, api_token: str) -> str | None:
+    """Probe /api/v1 with the bearer token; return an error key or None."""
+    try:
+        await StacheApiClient(hass, url, api_token).validate()
+    except StacheAuthError:
+        return "invalid_api_token"
+    except StacheApiError:
+        return "cannot_connect_api"
+    return None
 
 
 def parse_input(url: str, token: str | None) -> tuple[str, str | None]:
@@ -121,13 +137,23 @@ class StacheConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "token_required"
             elif (error := await _validate(self.hass, url, token)) is not None:
                 errors["base"] = error
-            else:
-                await self.async_set_unique_id(url)
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=f"Stache ({urlparse(url).netloc})",
-                    data={CONF_URL: url, CONF_TOKEN: token},
+            api_token = (user_input.get(CONF_API_TOKEN) or "").strip() or None
+            if api_token and (
+                api_error := await _validate_api(self.hass, url, api_token)
+            ) is not None:
+                errors[CONF_API_TOKEN] = api_error
+                return self.async_show_form(
+                    step_id="user", data_schema=USER_SCHEMA, errors=errors
                 )
+            data = {CONF_URL: url, CONF_TOKEN: token}
+            if api_token:
+                data[CONF_API_TOKEN] = api_token
+            await self.async_set_unique_id(url)
+            self._abort_if_unique_id_configured()
+            return self.async_create_entry(
+                title=f"Stache ({urlparse(url).netloc})",
+                data=data,
+            )
 
         return self.async_show_form(
             step_id="user", data_schema=USER_SCHEMA, errors=errors
@@ -159,6 +185,34 @@ class StacheConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reauth_confirm",
             data_schema=REAUTH_SCHEMA,
+            errors=errors,
+            description_placeholders={"url": entry.data[CONF_URL]},
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Add/replace the REST API token - services need it, sensors don't."""
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            api_token = (user_input.get(CONF_API_TOKEN) or "").strip() or None
+            if not api_token:
+                errors[CONF_API_TOKEN] = "token_required"
+            elif (
+                error := await _validate_api(
+                    self.hass, entry.data[CONF_URL], api_token
+                )
+            ) is not None:
+                errors[CONF_API_TOKEN] = error
+            else:
+                return self.async_update_reload_and_abort(
+                    entry, data_updates={CONF_API_TOKEN: api_token}
+                )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=RECONFIGURE_SCHEMA,
             errors=errors,
             description_placeholders={"url": entry.data[CONF_URL]},
         )

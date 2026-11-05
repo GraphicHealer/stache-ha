@@ -68,7 +68,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     async_add_entities(
-        StacheSensor(entry.runtime_data, entry, desc) for desc in SENSORS
+        StacheSensor(entry.runtime_data.coordinator, entry, desc) for desc in SENSORS
     )
 
 

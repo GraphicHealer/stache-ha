@@ -6,10 +6,10 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_TOKEN
+from .const import CONF_API_TOKEN, CONF_TOKEN
 from .coordinator import StacheConfigEntry
 
-TO_REDACT = {CONF_TOKEN}
+TO_REDACT = {CONF_TOKEN, CONF_API_TOKEN}
 
 
 def _summarize(data: dict[str, Any]) -> dict[str, Any]:

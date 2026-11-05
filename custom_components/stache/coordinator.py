@@ -7,6 +7,7 @@ from typing import Any
 
 import aiohttp
 
+from dataclasses import dataclass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -16,6 +17,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
+from .api import StacheApiClient
 from .const import (
     CONF_SCAN_INTERVAL,
     CONF_TOKEN,
@@ -27,7 +29,15 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-type StacheConfigEntry = ConfigEntry[StacheCoordinator]
+@dataclass
+class StacheData:
+    """Per-entry runtime data - sensor coordinator plus optional REST client."""
+
+    coordinator: "StacheCoordinator"
+    api: StacheApiClient | None
+
+
+type StacheConfigEntry = ConfigEntry[StacheData]
 
 
 def sensor_url(base: str, token: str) -> str:

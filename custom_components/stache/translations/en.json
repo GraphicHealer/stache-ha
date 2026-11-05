@@ -6,7 +6,11 @@
         "description": "Paste the sensor URL from Stache (Settings -> Out reminders -> Copy sensor URL), or enter the Stache URL plus the webhook token separately.",
         "data": {
           "url": "Stache URL or sensor URL",
-          "token": "Webhook token (only needed if not in the URL)"
+          "token": "Webhook token (only needed if not in the URL)",
+          "api_token": "API token (optional - enables services)"
+        },
+        "data_description": {
+          "api_token": "Create one in Stache Settings → API tokens. Leave empty for sensors only."
         }
       },
       "reauth_confirm": {
@@ -15,6 +19,16 @@
         "data": {
           "token": "Webhook token"
         }
+      },
+      "reconfigure": {
+        "title": "Update API token",
+        "data": {
+          "api_token": "API token"
+        },
+        "data_description": {
+          "api_token": "Create one in Stache Settings → API tokens. Enables the Stache services."
+        },
+        "description": "Enter the REST API token for {url}."
       }
     },
     "error": {
@@ -22,11 +36,14 @@
       "invalid_auth": "Invalid webhook token",
       "invalid_url": "Enter a valid http(s) URL for your Stache server",
       "invalid_response": "That URL answered, but it does not look like a Stache server",
-      "token_required": "A webhook token is required"
+      "token_required": "A webhook token is required",
+      "invalid_api_token": "API token rejected - check it in Stache Settings → API tokens",
+      "cannot_connect_api": "Could not reach the Stache API"
     },
     "abort": {
       "already_configured": "This Stache instance is already configured",
-      "reauth_successful": "Token updated"
+      "reauth_successful": "Token updated",
+      "reconfigure_successful": "API token updated"
     }
   },
   "options": {
@@ -42,10 +59,18 @@
   },
   "entity": {
     "sensor": {
-      "items_out": { "name": "Items out" },
-      "unaccounted": { "name": "Unaccounted" },
-      "low_stock": { "name": "Low stock" },
-      "warranty_expiring": { "name": "Warranty expiring" }
+      "items_out": {
+        "name": "Items out"
+      },
+      "unaccounted": {
+        "name": "Unaccounted"
+      },
+      "low_stock": {
+        "name": "Low stock"
+      },
+      "warranty_expiring": {
+        "name": "Warranty expiring"
+      }
     }
   }
 }

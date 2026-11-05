@@ -1,7 +1,9 @@
 # stache-ha
 
-HACS custom integration exposing [Stache](https://github.com/GraphicHealer/Stache)
-inventory state as Home Assistant sensors. Sibling repos: `../Stache` (the app -
+HACS custom integration for [Stache](https://github.com/GraphicHealer/Stache):
+sensors (out/unaccounted/low-stock/warranty) plus services that search and
+manage inventory (`stache.search`, `add_item` with photo upload, `update_item`,
+`set_status`, `move_item`, `resolve_label`). Sibling repos: `../Stache` (the app -
 source of the API contract) and `../stache-site` (marketing/docs).
 
 ## Stack

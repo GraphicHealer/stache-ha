@@ -4,7 +4,8 @@
 <h1 align="center">Stache for Home Assistant</h1>
 <p align="center">
   Exposes what's out of place, running low, or nearing the end of warranty in
-  <a href="https://github.com/GraphicHealer/Stache">Stache</a> as Home Assistant sensors you can automate on.
+  <a href="https://github.com/GraphicHealer/Stache">Stache</a> as Home Assistant sensors -
+  plus services that search and manage inventory directly from automations.
 </p>
 <p align="center">
   <a href="AI-DECLARATION.md"><img src="https://img.shields.io/badge/AI--DECLARATION-pair-blue" alt="AI-DECLARATION: pair"></a>
@@ -13,6 +14,25 @@
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=GraphicHealer&repository=stache-ha&category=integration"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open in HACS"></a>
   <a href="https://github.com/GraphicHealer/stache-ha/actions/workflows/validate.yml"><img src="https://github.com/GraphicHealer/stache-ha/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
 </p>
+
+## Services
+
+When the entry also has an **API token** (Stache Settings -> API tokens - paste it
+into the integration's **Reconfigure** step for existing installs, or the initial
+setup for new ones), these services appear under `stache.*`:
+
+| Service | What it does |
+|---------|-------------|
+| `stache.search` | Search shared items - returns `items` |
+| `stache.add_item` | File a new item - `area_id`/`area_label`/`area_name`, optional `name`, `description`, `quantity`, `barcode`, `tags`, `photo_path` (allowlisted dir) or `photo_url` |
+| `stache.update_item` | Patch fields and/or status on an item |
+| `stache.set_status` | Set an item's status (`home`/`out`/`lent`/`unaccounted`/`gone`) |
+| `stache.move_item` | Move an item to a different area |
+| `stache.resolve_label` | Resolve a QR label code to its area |
+
+All services return response data usable in automations (e.g.
+`{{ items[0].id }}` from `stache.search`). Writes go through the same event
+pipeline as the app - undo works in Stache as usual.
 
 ## Install
 
